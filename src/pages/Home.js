@@ -15,20 +15,32 @@ import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
 import SearchIcon from "@mui/icons-material/Search";
 import Navbar from "./Navbar";
 import RegisterCandidate from "./RegisterCandidate";
-import RegisterEmployee from "./RegisterEmployer";
+import RegisterEmployer from "./RegisterEmployer";
+import Login from "./Login";
 import { Link } from "react-router-dom";
 
-
 const HeroSection = () => {
-  const [open, setOpen] = useState(false);
+  const [openRegister, setOpenRegister] = useState(false);
   const [userType, setUserType] = useState("");
 
-  const handleOpen = (type) => {
+  const [openLogin, setOpenLogin] = useState(false);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+
+  const handleRegisterOpen = (type) => {
     setUserType(type);
-    setOpen(true);
+    setOpenRegister(true);
   };
 
-  const handleClose = () => setOpen(false);
+  const handleRegisterClose = () => {
+    setOpenRegister(false);
+  };
+
+  const handleShowLogin = (email, password) => {
+    setLoginEmail(email);
+    setLoginPassword(password);
+    setOpenLogin(true);
+  };
 
   return (
     <>
@@ -44,44 +56,61 @@ const HeroSection = () => {
           </Typography>
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center" mb={3}>
-            <Button variant="contained" size="large" startIcon={<PersonIcon />} onClick={() => handleOpen("Candidate")}>
+            <Button variant="contained" size="large" startIcon={<PersonIcon />} onClick={() => handleRegisterOpen("Candidate")}>
               Register as Candidate
             </Button>
-            <Button variant="outlined" size="large" onClick={() => handleOpen("Employer")}>
+            <Button variant="outlined" size="large" onClick={() => handleRegisterOpen("Employer")}>
               Register as Employer
             </Button>
           </Stack>
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center">
-  <Button
-    component={Link}
-    to="/candidates"
-    variant="outlined"
-    startIcon={<SearchIcon />}
-  >
-    Browse Jobs Without Registration
-  </Button>
-  <Button variant="outlined" startIcon={<BusinessCenterIcon />}>
-    View Employer Features
-  </Button>
-</Stack>
-
+            <Button component={Link} to="/candidates" variant="outlined" startIcon={<SearchIcon />}>
+              Browse Jobs Without Registration
+            </Button>
+            <Button variant="outlined" startIcon={<BusinessCenterIcon />}>
+              View Employer Features
+            </Button>
+          </Stack>
 
           {/* 🔐 Register Dialog */}
-          <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+          <Dialog open={openRegister} onClose={handleRegisterClose} maxWidth="sm" fullWidth>
             <DialogTitle>Register as {userType}</DialogTitle>
             <DialogContent>
-              {userType === "Candidate" && <RegisterCandidate />}
-              {userType === "Employer" && <RegisterEmployee />}
+              {userType === "Candidate" && (
+                <RegisterCandidate
+                  onClose={handleRegisterClose}
+                  onRegistered={handleShowLogin}
+                />
+              )}
+              {userType === "Employer" && (
+                <RegisterEmployer
+                  onClose={handleRegisterClose}
+                  onRegistered={handleShowLogin}
+                />
+              )}
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleClose}>Cancel</Button>
+              <Button onClick={handleRegisterClose}>Cancel</Button>
             </DialogActions>
           </Dialog>
-        </Container>
-      </Box>
-    </>
-  );
-};
+
+          {/* 🔐 Login Dialog */}
+         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+  <DialogTitle>Register as {userType}</DialogTitle>
+  <DialogContent>
+    {userType === "Candidate" && (
+      <RegisterCandidate onClose={handleClose} />
+    )}
+    {userType === "Employer" && (
+      <RegisterEmployer onClose={handleClose} />
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={handleClose}>Cancel</Button>
+  </DialogActions>
+</Dialog>
+
 
 export default HeroSection;
+

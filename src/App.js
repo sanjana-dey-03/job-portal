@@ -1,9 +1,10 @@
+// src/App.js
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
-import AppRoutes from "./routes/AppRoutes"; // Adjust path if needed
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
+import AppRoutes from "./routes/AppRoutes"; // Make sure path is correct
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
@@ -15,3 +16,5 @@ function App() {
 }
 
 export default App;
+
+

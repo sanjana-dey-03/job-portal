@@ -40,7 +40,7 @@ const HeroSection = () => {
             Find Your Dream Job or <span style={{ color: "#1a73e8" }}>Perfect Candidate</span>
           </Typography>
           <Typography variant="subtitle1" mt={2} mb={5} color="text.secondary">
-            Connect talented professionals with amazing companies.
+          Connect talented professionals with amazing companies. Whether you're looking for your next career move or searching for top talent, we've got you covered.
           </Typography>
 
           <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center" mb={3}>

@@ -11,7 +11,8 @@ import {
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import BusinessIcon from '@mui/icons-material/Business';
-import Navbar from "./Navbar";
+import Navbar from "./Navbar"; // Adjusted for pages/ folder
+import ApplyJobButton from "../ApplyJobButton"; // New import
 
 const JobList = () => {
   const jobs = [
@@ -88,20 +89,18 @@ const JobList = () => {
                   }
                 }}
               >
-                {/* Top Row: Title & Right-Aligned Posted + Apply Button */}
+                {/* Top Row: Title & Posted + Apply Button */}
                 <Stack
                   direction="row"
                   justifyContent="space-between"
                   alignItems="flex-start"
                 >
-                  {/* Left: Title */}
                   <Box>
                     <Typography variant="h6" sx={{ fontWeight: 600, mb: 0, lineHeight: 1 }}>
                       {job.title}
                     </Typography>
                   </Box>
 
-                  {/* Right: Posted above Apply Now */}
                   <Box textAlign="right">
                     <Typography
                       variant="caption"
@@ -110,37 +109,23 @@ const JobList = () => {
                     >
                       {job.posted}
                     </Typography>
-                    <Button
-                      variant="contained"
-                      sx={{
-                        bgcolor: "#0b132b",
-                        px: 3,
-                        py: 1,
-                        borderRadius: 2,
-                        textTransform: "none"
-                      }}
-                    >
-                      Apply Now
-                    </Button>
+                    <ApplyJobButton jobId={job.id} />
                   </Box>
                 </Stack>
 
-                {/* Job details */}
+                {/* Job Details */}
                 <Box>
                   <Stack direction="row" alignItems="center" spacing={1.5} mt={0} mb={0} flexWrap="wrap">
-                    {/* Company Name with icon */}
                     <Stack direction="row" alignItems="center" spacing={0.5}>
                       <BusinessIcon fontSize="small" color="action" />
                       <Typography variant="body2">{job.company}</Typography>
                     </Stack>
 
-                    {/* Location */}
                     <Stack direction="row" alignItems="center" spacing={0.5}>
                       <LocationOnIcon fontSize="small" color="action" />
                       <Typography variant="body2">{job.location}</Typography>
                     </Stack>
 
-                    {/* Type */}
                     <Stack direction="row" alignItems="center" spacing={0.5}>
                       <AccessTimeIcon fontSize="small" color="action" />
                       <Typography variant="body2">{job.type}</Typography>
@@ -177,7 +162,7 @@ const JobList = () => {
                   )}
                 </Box>
 
-                {/* Bottom: View Details */}
+                {/* View Details */}
                 <Box mt={3} textAlign="right">
                   <Button
                     variant="outlined"
@@ -202,8 +187,3 @@ const JobList = () => {
 };
 
 export default JobList;
-
-
-
-
-

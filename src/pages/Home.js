@@ -16,16 +16,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import Navbar from "./Navbar";
 import RegisterCandidate from "./RegisterCandidate";
 import RegisterEmployer from "./RegisterEmployer";
-import Login from "./Login";
 import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   const [openRegister, setOpenRegister] = useState(false);
   const [userType, setUserType] = useState("");
-
-  const [openLogin, setOpenLogin] = useState(false);
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
 
   const handleRegisterOpen = (type) => {
     setUserType(type);
@@ -36,10 +31,14 @@ const HeroSection = () => {
     setOpenRegister(false);
   };
 
-  const handleShowLogin = (email, password) => {
-    setLoginEmail(email);
-    setLoginPassword(password);
-    setOpenLogin(true);
+  const outlinedButtonStyle = {
+    fontWeight: "bold",
+    borderColor: "#1565c0",
+    color: "#1565c0",
+    '&:hover': {
+      borderColor: "#0d47a1",
+      backgroundColor: "rgba(21, 101, 192, 0.05)"
+    }
   };
 
   return (
@@ -49,68 +48,87 @@ const HeroSection = () => {
       <Box textAlign="center" py={10} bgcolor="#f5f9ff">
         <Container>
           <Typography variant="h3" fontWeight="bold">
-            Find Your Dream Job or <span style={{ color: "#1a73e8" }}>Perfect Candidate</span>
+            Find Your Dream Job or{" "}
+            <span style={{ color: "#1a73e8" }}>Perfect Candidate</span>
           </Typography>
           <Typography variant="subtitle1" mt={2} mb={5} color="text.secondary">
-            Connect talented professionals with amazing companies.
+            Connect talented professionals with amazing companies. Whether you're looking for your next career move or searching for top talent, we've got you covered.
           </Typography>
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center" mb={3}>
-            <Button variant="contained" size="large" startIcon={<PersonIcon />} onClick={() => handleRegisterOpen("Candidate")}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            justifyContent="center"
+            mb={3}
+          >
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<PersonIcon />}
+              onClick={() => handleRegisterOpen("Candidate")}
+              sx={{ fontWeight: "bold" }}
+            >
               Register as Candidate
             </Button>
-            <Button variant="outlined" size="large" onClick={() => handleRegisterOpen("Employer")}>
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={() => handleRegisterOpen("Employer")}
+              sx={outlinedButtonStyle}
+            >
               Register as Employer
             </Button>
           </Stack>
 
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center">
-            <Button component={Link} to="/candidates" variant="outlined" startIcon={<SearchIcon />}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            justifyContent="center"
+          >
+            <Button
+              component={Link}
+              to="/candidates"
+              variant="outlined"
+              startIcon={<SearchIcon />}
+              sx={outlinedButtonStyle}
+            >
               Browse Jobs Without Registration
             </Button>
-            <Button variant="outlined" startIcon={<BusinessCenterIcon />}>
+            <Button
+              variant="outlined"
+              startIcon={<BusinessCenterIcon />}
+              sx={outlinedButtonStyle}
+            >
               View Employer Features
             </Button>
           </Stack>
 
-          {/* 🔐 Register Dialog */}
-          <Dialog open={openRegister} onClose={handleRegisterClose} maxWidth="sm" fullWidth>
+          {/* 🔐 Registration Modal */}
+          <Dialog
+            open={openRegister}
+            onClose={handleRegisterClose}
+            maxWidth="sm"
+            fullWidth
+          >
             <DialogTitle>Register as {userType}</DialogTitle>
             <DialogContent>
               {userType === "Candidate" && (
-                <RegisterCandidate
-                  onClose={handleRegisterClose}
-                  onRegistered={handleShowLogin}
-                />
+                <RegisterCandidate onClose={handleRegisterClose} />
               )}
               {userType === "Employer" && (
-                <RegisterEmployer
-                  onClose={handleRegisterClose}
-                  onRegistered={handleShowLogin}
-                />
+                <RegisterEmployer onClose={handleRegisterClose} />
               )}
             </DialogContent>
             <DialogActions>
               <Button onClick={handleRegisterClose}>Cancel</Button>
             </DialogActions>
           </Dialog>
-
-          {/* 🔐 Login Dialog */}
-         <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-  <DialogTitle>Register as {userType}</DialogTitle>
-  <DialogContent>
-    {userType === "Candidate" && (
-      <RegisterCandidate onClose={handleClose} />
-    )}
-    {userType === "Employer" && (
-      <RegisterEmployer onClose={handleClose} />
-    )}
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={handleClose}>Cancel</Button>
-  </DialogActions>
-</Dialog>
-
+        </Container>
+      </Box>
+    </>
+  );
+};
 
 export default HeroSection;
+
 

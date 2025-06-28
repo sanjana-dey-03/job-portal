@@ -1,70 +1,30 @@
-import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, Link } from "@mui/material";
-import { auth, db } from "../firebase";
-import { signOut } from "firebase/auth";
+import React from "react";
+import { Box, Typography, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 import { toast } from "react-toastify";
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
-  const [candidate, setCandidate] = useState(null);
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      toast.success("Logged out");
-      navigate("/login");
-    } catch (err) {
-      toast.error("Logout failed");
-    }
+    await signOut(auth);
+    toast.success("Logged out successfully");
+    navigate("/"); // Redirect to homepage or login
   };
 
-  useEffect(() => {
-    const fetchCandidate = async () => {
-      try {
-        const q = query(
-          collection(db, "candidates"),
-          where("email", "==", auth.currentUser.email)
-        );
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          setCandidate(snapshot.docs[0].data());
-        }
-      } catch (err) {
-        toast.error("Failed to load profile");
-      }
-    };
-
-    fetchCandidate();
-  }, []);
-
   return (
-    <Box sx={{ mt: 4, textAlign: "center" }}>
-      <Typography variant="h4" gutterBottom>
-        Candidate Dashboard
+    <Box sx={{ p: 4 }}>
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
+        Welcome to the Candidate Dashboard
       </Typography>
 
-      {candidate && (
-        <>
-          <Typography>Name: {candidate.fullName}</Typography>
-          <Typography>Email: {candidate.email}</Typography>
-          <Typography>Phone: {candidate.phone}</Typography>
-          <Typography sx={{ mt: 2 }}>
-            Resume:{" "}
-            <Link href={candidate.resumeURL} target="_blank" rel="noopener">
-              View Resume
-            </Link>
-          </Typography>
-        </>
-      )}
+      <Typography variant="body1" mb={3}>
+        You can now browse jobs, apply, and manage your profile here.
+      </Typography>
 
-      <Button
-        onClick={handleLogout}
-        variant="outlined"
-        color="error"
-        sx={{ mt: 4 }}
-      >
+      <Button variant="contained" color="primary" onClick={handleLogout}>
         Logout
       </Button>
     </Box>
@@ -72,4 +32,5 @@ const CandidateDashboard = () => {
 };
 
 export default CandidateDashboard;
+
 

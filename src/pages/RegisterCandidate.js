@@ -1,146 +1,147 @@
 import React, { useState } from "react";
 import {
   Box,
-  TextField,
-  Button,
   Typography,
+  Tabs,
+  Tab,
+  TextField,
   InputAdornment,
-  IconButton
+  MenuItem,
+  Button,
+  AppBar,
+  Toolbar,
+  Stack
 } from "@mui/material";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../firebase";
-import { doc, setDoc } from "firebase/firestore";
-import { toast } from "react-toastify";
+import SearchIcon from "@mui/icons-material/Search";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import FilterListIcon from "@mui/icons-material/FilterList";
 import { useNavigate } from "react-router-dom";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { auth } from "../firebase";
+import { signOut } from "firebase/auth";
+import { toast } from "react-toastify";
 
-const RegisterCandidate = ({ onClose }) => {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [resumeLink, setResumeLink] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-
-  const [errors, setErrors] = useState({});
-
+const CandidateDashboard = () => {
+  const [tabIndex, setTabIndex] = useState(0);
+  const [jobType, setJobType] = useState("");
   const navigate = useNavigate();
 
-  const validate = () => {
-    const newErrors = {};
-    if (!fullName.trim()) newErrors.fullName = "Full name is required.";
-    if (!email.match(/^\S+@\S+\.\S+$/)) newErrors.email = "Invalid email format.";
-    if (!phone.match(/^\d{10}$/)) newErrors.phone = "Phone must be 10 digits.";
-    if (!resumeLink.trim()) newErrors.resumeLink = "Resume link is required.";
-    if (password.length < 6) newErrors.password = "Password must be at least 6 characters.";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleTabChange = (_, newValue) => {
+    setTabIndex(newValue);
   };
 
-  const handleRegister = async () => {
-    if (!validate()) return;
-
+  const handleLogout = async () => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = userCredential.user.uid;
-
-      const candidatePayload = {
-        fullName,
-        email,
-        phone,
-        resumeUrl: resumeLink,
-        uid
-      };
-
-      await setDoc(doc(db, "candidates", uid), candidatePayload);
-
-      toast.success("Candidate registered successfully!");
-
-      setFullName("");
-      setEmail("");
-      setPhone("");
-      setResumeLink("");
-      setPassword("");
-
-      if (onClose) onClose();
-      setTimeout(() => navigate("/login"), 300);
+      await signOut(auth);
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("tokenExpiry");
+      toast.success("Logged out successfully!");
+      navigate("/");
     } catch (error) {
-      toast.error(error.message);
+      toast.error("Logout failed. Please try again.");
     }
   };
 
   return (
-    <Box sx={{ maxWidth: 500, mx: "auto", mt: 4 }}>
-      <Typography variant="h5" gutterBottom>Candidate Registration</Typography>
+    <Box>
+      {/* Navbar */}
+      <AppBar position="static" color="inherit" elevation={1}>
+        <Toolbar sx={{ justifyContent: "space-between" }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <img src="/logo.svg" alt="Logo" height={24} />
+            <Typography variant="h6" fontWeight="bold" color="primary">
+              JobPortal
+            </Typography>
+          </Stack>
 
-      <TextField
-        fullWidth
-        label="Full Name*"
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
-        margin="normal"
-        error={Boolean(errors.fullName)}
-        helperText={errors.fullName}
-      />
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={handleLogout}
+              sx={{ borderRadius: 2 }}
+            >
+              Logout
+            </Button>
+          </Stack>
+        </Toolbar>
+      </AppBar>
 
-      <TextField
-        fullWidth
-        label="Email*"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        margin="normal"
-        error={Boolean(errors.email)}
-        helperText={errors.email}
-      />
+      {/* Tabs */}
+      <Box sx={{ bgcolor: "#f9fafb", borderBottom: 1, borderColor: "divider" }}>
+        <Tabs
+          value={tabIndex}
+          onChange={handleTabChange}
+          aria-label="Candidate dashboard tabs"
+          sx={{ pl: 2 }}
+        >
+          <Tab label="Browse Jobs" />
+          <Tab label="My Profile" />
+          <Tab label="Applications" />
+        </Tabs>
+      </Box>
 
-      <TextField
-        fullWidth
-        label="Phone Number*"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-        margin="normal"
-        error={Boolean(errors.phone)}
-        helperText={errors.phone}
-      />
+      {/* Search Section */}
+      {tabIndex === 0 && (
+        <Box sx={{ p: 4 }}>
+          <Typography variant="h5" fontWeight="bold" mb={1}>
+            Find Your Next Opportunity
+          </Typography>
+          <Typography variant="body2" color="text.secondary" mb={3}>
+            Search through thousands of job opportunities
+          </Typography>
 
-      <TextField
-        fullWidth
-        label="Resume Link*"
-        value={resumeLink}
-        onChange={(e) => setResumeLink(e.target.value)}
-        margin="normal"
-        error={!!errors.resumeLink}
-        helperText={errors.resumeLink}
-      />
-
-      <TextField
-        fullWidth
-        label="Password*"
-        type={showPassword ? "text" : "password"}
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        margin="normal"
-        error={!!errors.password}
-        helperText={errors.password || "At least 8 chars, letters, numbers & a special character"}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                {showPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          )
-        }}
-      />
-
-      <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={handleRegister}>
-        Register
-      </Button>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            alignItems="center"
+          >
+            <TextField
+              placeholder="Job title, company, or skills"
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                )
+              }}
+            />
+            <TextField
+              placeholder="Location"
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LocationOnIcon />
+                  </InputAdornment>
+                )
+              }}
+            />
+            <TextField
+              select
+              value={jobType}
+              onChange={(e) => setJobType(e.target.value)}
+              placeholder="Job Type"
+              fullWidth
+            >
+              <MenuItem value="">All Types</MenuItem>
+              <MenuItem value="full-time">Full-Time</MenuItem>
+              <MenuItem value="part-time">Part-Time</MenuItem>
+              <MenuItem value="internship">Internship</MenuItem>
+              <MenuItem value="remote">Remote</MenuItem>
+            </TextField>
+            <Button
+              variant="contained"
+              startIcon={<FilterListIcon />}
+              sx={{ height: 56 }}
+            >
+              Search Jobs
+            </Button>
+          </Stack>
+        </Box>
+      )}
     </Box>
   );
 };
 
-export default RegisterCandidate;
-
-
+export default CandidateDashboard;

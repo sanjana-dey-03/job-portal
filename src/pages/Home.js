@@ -16,11 +16,13 @@ import SearchIcon from "@mui/icons-material/Search";
 import Navbar from "./Navbar";
 import RegisterCandidate from "./RegisterCandidate";
 import RegisterEmployer from "./RegisterEmployer";
+import LoginModal from "./LoginModal";
 import { Link } from "react-router-dom";
 
 const HeroSection = () => {
   const [openRegister, setOpenRegister] = useState(false);
   const [userType, setUserType] = useState("");
+  const [openLogin, setOpenLogin] = useState(false);
 
   const handleRegisterOpen = (type) => {
     setUserType(type);
@@ -29,6 +31,14 @@ const HeroSection = () => {
 
   const handleRegisterClose = () => {
     setOpenRegister(false);
+  };
+
+  const handleOpenLogin = () => {
+    setOpenLogin(true);
+  };
+
+  const handleCloseLogin = () => {
+    setOpenLogin(false);
   };
 
   const outlinedButtonStyle = {
@@ -113,16 +123,25 @@ const HeroSection = () => {
             <DialogTitle>Register as {userType}</DialogTitle>
             <DialogContent>
               {userType === "Candidate" && (
-                <RegisterCandidate onClose={handleRegisterClose} />
+                <RegisterCandidate
+                  onClose={handleRegisterClose}
+                  onOpenLogin={handleOpenLogin}
+                />
               )}
               {userType === "Employer" && (
-                <RegisterEmployer onClose={handleRegisterClose} />
+                <RegisterEmployer
+                  onClose={handleRegisterClose}
+                  onOpenLogin={handleOpenLogin}
+                />
               )}
             </DialogContent>
             <DialogActions>
               <Button onClick={handleRegisterClose}>Cancel</Button>
             </DialogActions>
           </Dialog>
+
+          {/* 🔐 Login Modal */}
+          <LoginModal open={openLogin} onClose={handleCloseLogin} />
         </Container>
       </Box>
     </>
@@ -130,5 +149,3 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
-
-

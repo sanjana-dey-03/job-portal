@@ -1,63 +1,62 @@
 import React, { useState } from "react";
-import { Box, TextField, Button, Typography } from "@mui/material";
-import { auth, db } from "../firebase";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  InputAdornment,
+  IconButton
+} from "@mui/material";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { collection, addDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
+import { doc, setDoc } from "firebase/firestore";
 import { toast } from "react-toastify";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
-const RegisterEmployer = ({ onClose, onRegistered }) => {
+const RegisterEmployer = ({ onClose, onOpenLogin }) => {
   const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
-  const [website, setWebsite] = useState("");
-  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+  const [industry, setIndustry] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  const validateEmail = (email) => /\S+@\S+\.\S+/.test(email);
-  const validatePhone = (phone) => /^\d{10}$/.test(phone);
-  const validateWebsite = (url) => /^https?:\/\/[\w.-]+\.[a-z]{2,}/i.test(url);
-  const validatePassword = (pwd) =>
-    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(pwd);
+  const validate = () => {
+    const newErrors = {};
+    if (!companyName.trim()) newErrors.companyName = "Company name is required.";
+    if (!email.match(/^\S+@\S+\.\S+$/)) newErrors.email = "Invalid email format.";
+    if (!location.trim()) newErrors.location = "Location is required.";
+    if (!industry.trim()) newErrors.industry = "Industry is required.";
+    if (!password.match(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/)) {
+      newErrors.password =
+        "Password must be 8+ characters, include letters, numbers & a special character.";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleRegister = async () => {
-    if (!companyName || !email || !phone || !website || !password) {
-      toast.info("Please fill all fields");
-      return;
-    }
-
-    if (!validateEmail(email)) return toast.error("Invalid email format");
-    if (!validatePhone(phone)) return toast.error("Phone must be 10 digits");
-    if (!validateWebsite(website)) return toast.error("Invalid website URL");
-    if (!validatePassword(password)) {
-      return toast.error("Password must include letters, numbers & symbols");
-    }
-
+    if (!validate()) return;
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
 
-      await addDoc(collection(db, "employers"), {
+      await setDoc(doc(db, "employers", uid), {
         uid,
         companyName,
         email,
-        phone,
-        website,
-        registeredAt: new Date()
+        location,
+        industry
       });
 
-      toast.success("Employer registered!");
-
-      // Reset
-      setCompanyName("");
-      setEmail("");
-      setPhone("");
-      setWebsite("");
-      setPassword("");
+      toast.success("Employer registered successfully!");
 
       if (onClose) onClose();
-      if (onRegistered) onRegistered(email, password);
+      if (onOpenLogin) onOpenLogin();
     } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong");
+      toast.error(error.message);
     }
   };
 
@@ -67,13 +66,65 @@ const RegisterEmployer = ({ onClose, onRegistered }) => {
         Employer Registration
       </Typography>
 
-      <TextField fullWidth label="Company Name*" value={companyName} onChange={(e) => setCompanyName(e.target.value)} margin="normal" />
-      <TextField fullWidth label="Email*" value={email} onChange={(e) => setEmail(e.target.value)} margin="normal" />
-      <TextField fullWidth label="Company Website*" value={website} onChange={(e) => setWebsite(e.target.value)} margin="normal" />
-      <TextField fullWidth label="Phone Number*" value={phone} onChange={(e) => setPhone(e.target.value)} margin="normal" />
-      <TextField fullWidth label="Password*" type="password" value={password} onChange={(e) => setPassword(e.target.value)} margin="normal" />
-
-      <Button variant="contained" fullWidth sx={{ mt: 2 }} onClick={handleRegister}>
+      <TextField
+        fullWidth
+        label="Company Name*"
+        value={companyName}
+        onChange={(e) => setCompanyName(e.target.value)}
+        margin="normal"
+        error={!!errors.companyName}
+        helperText={errors.companyName}
+      />
+      <TextField
+        fullWidth
+        label="Email*"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        margin="normal"
+        error={!!errors.email}
+        helperText={errors.email}
+      />
+      <TextField
+        fullWidth
+        label="Location*"
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
+        margin="normal"
+        error={!!errors.location}
+        helperText={errors.location}
+      />
+      <TextField
+        fullWidth
+        label="Industry*"
+        value={industry}
+        onChange={(e) => setIndustry(e.target.value)}
+        margin="normal"
+        error={!!errors.industry}
+        helperText={errors.industry}
+      />
+      <TextField
+        fullWidth
+        label="Password*"
+        type={showPassword ? "text" : "password"}
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        margin="normal"
+        error={!!errors.password}
+        helperText={
+          errors.password ||
+          "At least 8 characters, including letters, numbers & a special character"
+        }
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          )
+        }}
+      />
+      <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={handleRegister}>
         Register
       </Button>
     </Box>
@@ -81,5 +132,6 @@ const RegisterEmployer = ({ onClose, onRegistered }) => {
 };
 
 export default RegisterEmployer;
+
 
 

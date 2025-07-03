@@ -34,7 +34,8 @@ const HeroSection = () => {
   };
 
   const handleOpenLogin = () => {
-    setOpenLogin(true);
+    setOpenRegister(false); // Close registration modal first
+    setOpenLogin(true);     // Then open login modal
   };
 
   const handleCloseLogin = () => {
@@ -149,3 +150,4 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
+

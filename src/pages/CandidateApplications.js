@@ -103,3 +103,4 @@ const CandidateApplications = ({ jobId, jobTitle }) => {
 
 export default CandidateApplications;
 
+ 

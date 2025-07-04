@@ -100,7 +100,7 @@ const HeroSection = () => {
           >
             <Button
               component={Link}
-              to="/candidates"
+              to="/joblist"
               variant="outlined"
               startIcon={<SearchIcon />}
               sx={outlinedButtonStyle}

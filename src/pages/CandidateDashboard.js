@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -10,19 +10,31 @@ import {
   Button,
   AppBar,
   Toolbar,
-  Stack
+  Stack,
+  Card,
+  CardContent,
+  Chip,
+  Divider,
+  CircularProgress,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import WorkIcon from "@mui/icons-material/Work";
+import BusinessIcon from "@mui/icons-material/Business";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import { signOut } from "firebase/auth";
 import { toast } from "react-toastify";
+import { collection, getDocs } from "firebase/firestore";
 
 const CandidateDashboard = () => {
   const [tabIndex, setTabIndex] = useState(0);
-  const [jobType, setJobType] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [jobTypeFilter, setJobTypeFilter] = useState("");
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const handleTabChange = (_, newValue) => {
@@ -41,6 +53,37 @@ const CandidateDashboard = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "jobs"));
+        const jobsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setJobs(jobsData);
+      } catch (error) {
+        toast.error("Failed to load jobs.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
+  }, []);
+
+  const filteredJobs = jobs.filter((job) => {
+    const search = searchTerm.toLowerCase();
+    const matchesSearch =
+      job.title?.toLowerCase().includes(search) ||
+      job.company?.toLowerCase().includes(search) ||
+      job.location?.toLowerCase().includes(search);
+
+    const matchesType =
+      jobTypeFilter === "" || job.type?.toLowerCase() === jobTypeFilter.toLowerCase();
+
+    return matchesSearch && matchesType;
+  });
+
   return (
     <Box>
       {/* Navbar */}
@@ -52,7 +95,6 @@ const CandidateDashboard = () => {
               JobPortal
             </Typography>
           </Stack>
-
           <Stack direction="row" spacing={2} alignItems="center">
             <Button
               variant="outlined"
@@ -80,7 +122,7 @@ const CandidateDashboard = () => {
         </Tabs>
       </Box>
 
-      {/* Search Section */}
+      {/* Browse Jobs */}
       {tabIndex === 0 && (
         <Box sx={{ p: 4 }}>
           <Typography variant="h5" fontWeight="bold" mb={1}>
@@ -90,45 +132,40 @@ const CandidateDashboard = () => {
             Search through thousands of job opportunities
           </Typography>
 
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            alignItems="center"
-          >
+          {/* Search & Filter */}
+          <Stack spacing={2} direction={{ xs: "column", md: "row" }} mb={3}>
             <TextField
-              placeholder="Job title, company, or skills"
               fullWidth
+              placeholder="Job title, company, or location"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
                     <SearchIcon />
                   </InputAdornment>
-                )
-              }}
-            />
-            <TextField
-              placeholder="Location"
-              fullWidth
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LocationOnIcon />
-                  </InputAdornment>
-                )
+                ),
               }}
             />
             <TextField
               select
-              value={jobType}
-              onChange={(e) => setJobType(e.target.value)}
-              placeholder="Job Type"
               fullWidth
+              label="Job Type"
+              value={jobTypeFilter}
+              onChange={(e) => setJobTypeFilter(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <WorkIcon />
+                  </InputAdornment>
+                ),
+              }}
             >
               <MenuItem value="">All Types</MenuItem>
-              <MenuItem value="full-time">Full-Time</MenuItem>
-              <MenuItem value="part-time">Part-Time</MenuItem>
-              <MenuItem value="internship">Internship</MenuItem>
-              <MenuItem value="remote">Remote</MenuItem>
+              <MenuItem value="Full-Time">Full-Time</MenuItem>
+              <MenuItem value="Part-Time">Part-Time</MenuItem>
+              <MenuItem value="Internship">Internship</MenuItem>
+              <MenuItem value="Remote">Remote</MenuItem>
             </TextField>
             <Button
               variant="contained"
@@ -138,6 +175,67 @@ const CandidateDashboard = () => {
               Search Jobs
             </Button>
           </Stack>
+
+          {/* Job List */}
+          {loading ? (
+            <CircularProgress />
+          ) : filteredJobs.length === 0 ? (
+            <Typography>No jobs found.</Typography>
+          ) : (
+            filteredJobs.map((job) => (
+              <Card
+                key={job.id}
+                variant="outlined"
+                sx={{ mb: 2, backgroundColor: "#f9fbff" }}
+              >
+                <CardContent>
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: "flex-start", sm: "center" }}
+                    spacing={2}
+                  >
+                    <Box>
+                      <Typography variant="h6" fontWeight="bold">
+                        {job.title}
+                      </Typography>
+                      <Stack direction="row" spacing={1} mt={0.5}>
+                        <Stack direction="row" alignItems="center" spacing={0.5}>
+                          <BusinessIcon fontSize="small" />
+                          <Typography variant="body2">{job.company}</Typography>
+                        </Stack>
+                        <Stack direction="row" alignItems="center" spacing={0.5}>
+                          <LocationOnIcon fontSize="small" />
+                          <Typography variant="body2">{job.location}</Typography>
+                        </Stack>
+                        <Stack direction="row" alignItems="center" spacing={0.5}>
+                          <AccessTimeIcon fontSize="small" />
+                          <Typography variant="body2">{job.type}</Typography>
+                        </Stack>
+                      </Stack>
+                      <Typography sx={{ mt: 1 }}>
+                        {job.description?.slice(0, 100)}...
+                      </Typography>
+                      <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
+                        {(job.tags || []).map((tag, i) => (
+                          <Chip key={i} label={tag} variant="outlined" size="small" />
+                        ))}
+                      </Stack>
+                    </Box>
+
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      sx={{ alignSelf: "center" }}
+                      onClick={() => navigate(`/job/${job.id}`)}
+                    >
+                      Apply Now
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </Box>
       )}
     </Box>
@@ -145,3 +243,4 @@ const CandidateDashboard = () => {
 };
 
 export default CandidateDashboard;
+

@@ -9,15 +9,15 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { db } from "../firebase"; // Make sure this path matches your actual file
+import { db } from "../firebase";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const CandidateApplications = ({ jobId, jobTitle }) => {
   const [coverLetter, setCoverLetter] = useState("");
-  const [resumeLink, setResumeLink] = useState(""); // Optional
+  const [resumeLink, setResumeLink] = useState("");
   const [loading, setLoading] = useState(false);
-  const [toastOpen, setToastOpen] = useState(false);
+  const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,7 +27,7 @@ const CandidateApplications = ({ jobId, jobTitle }) => {
     const user = auth.currentUser;
 
     if (!user) {
-      alert("You must be logged in to apply.");
+      setToast({ open: true, message: "Please log in to apply.", severity: "error" });
       setLoading(false);
       return;
     }
@@ -39,16 +39,16 @@ const CandidateApplications = ({ jobId, jobTitle }) => {
         candidateId: user.uid,
         candidateEmail: user.email,
         coverLetter,
-        resumeLink,
+        resumeLink: resumeLink || null,
         appliedAt: Timestamp.now(),
       });
 
-      setToastOpen(true);
+      setToast({ open: true, message: "Application submitted successfully!", severity: "success" });
       setCoverLetter("");
       setResumeLink("");
     } catch (error) {
       console.error("Error applying to job:", error);
-      alert("Error submitting application");
+      setToast({ open: true, message: "Failed to submit application.", severity: "error" });
     } finally {
       setLoading(false);
     }
@@ -59,6 +59,7 @@ const CandidateApplications = ({ jobId, jobTitle }) => {
       <Typography variant="h6" mb={2}>
         Apply for {jobTitle}
       </Typography>
+
       <TextField
         label="Cover Letter"
         multiline
@@ -69,6 +70,7 @@ const CandidateApplications = ({ jobId, jobTitle }) => {
         onChange={(e) => setCoverLetter(e.target.value)}
         margin="normal"
       />
+
       <TextField
         label="Resume Link (optional)"
         fullWidth
@@ -76,17 +78,23 @@ const CandidateApplications = ({ jobId, jobTitle }) => {
         onChange={(e) => setResumeLink(e.target.value)}
         margin="normal"
       />
-      <Button type="submit" variant="contained" disabled={loading}>
-        {loading ? "Applying..." : "Submit Application"}
+
+      <Button
+        type="submit"
+        variant="contained"
+        disabled={loading}
+        sx={{ mt: 2 }}
+      >
+        {loading ? "Submitting..." : "Submit Application"}
       </Button>
 
       <Snackbar
-        open={toastOpen}
-        autoHideDuration={3000}
-        onClose={() => setToastOpen(false)}
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={() => setToast({ ...toast, open: false })}
       >
-        <Alert severity="success" variant="filled">
-          Application submitted successfully!
+        <Alert severity={toast.severity} variant="filled">
+          {toast.message}
         </Alert>
       </Snackbar>
     </Box>
@@ -94,3 +102,4 @@ const CandidateApplications = ({ jobId, jobTitle }) => {
 };
 
 export default CandidateApplications;
+

@@ -5,7 +5,7 @@ import {
   Button,
   Typography,
   InputAdornment,
-  IconButton
+  IconButton,
 } from "@mui/material";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../firebase";
@@ -29,7 +29,9 @@ const RegisterEmployer = ({ onClose, onOpenLogin }) => {
     if (!email.match(/^\S+@\S+\.\S+$/)) newErrors.email = "Invalid email format.";
     if (!location.trim()) newErrors.location = "Location is required.";
     if (!industry.trim()) newErrors.industry = "Industry is required.";
-    if (!password.match(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&]).{8,}$/)) {
+    if (
+      !password.match(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/)
+    ) {
       newErrors.password =
         "Password must be 8+ characters, include letters, numbers & a special character.";
     }
@@ -39,6 +41,7 @@ const RegisterEmployer = ({ onClose, onOpenLogin }) => {
 
   const handleRegister = async () => {
     if (!validate()) return;
+
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
@@ -48,15 +51,17 @@ const RegisterEmployer = ({ onClose, onOpenLogin }) => {
         companyName,
         email,
         location,
-        industry
+        industry,
+        role: "employer", // Important for login-based redirection
       });
 
       toast.success("Employer registered successfully!");
 
       if (onClose) onClose();
-      if (onOpenLogin) onOpenLogin();
+      if (onOpenLogin) onOpenLogin(); // Open login modal
     } catch (error) {
-      toast.error(error.message);
+      console.error(error);
+      toast.error(error.message || "Registration failed");
     }
   };
 
@@ -121,10 +126,15 @@ const RegisterEmployer = ({ onClose, onOpenLogin }) => {
                 {showPassword ? <VisibilityOff /> : <Visibility />}
               </IconButton>
             </InputAdornment>
-          )
+          ),
         }}
       />
-      <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={handleRegister}>
+      <Button
+        fullWidth
+        variant="contained"
+        sx={{ mt: 2 }}
+        onClick={handleRegister}
+      >
         Register
       </Button>
     </Box>
@@ -132,6 +142,7 @@ const RegisterEmployer = ({ onClose, onOpenLogin }) => {
 };
 
 export default RegisterEmployer;
+
 
 
 

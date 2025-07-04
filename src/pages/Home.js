@@ -33,13 +33,15 @@ const HeroSection = () => {
     setOpenRegister(false);
   };
 
-  const handleOpenLogin = () => {
-    setOpenRegister(false); // Close registration modal first
-    setOpenLogin(true);     // Then open login modal
+  const handleOpenLogin = (type) => {
+    setOpenRegister(false);
+    setUserType(type);
+    setOpenLogin(true);
   };
 
   const handleCloseLogin = () => {
     setOpenLogin(false);
+    setUserType(""); // Clear userType when closing login
   };
 
   const outlinedButtonStyle = {
@@ -126,13 +128,13 @@ const HeroSection = () => {
               {userType === "Candidate" && (
                 <RegisterCandidate
                   onClose={handleRegisterClose}
-                  onOpenLogin={handleOpenLogin}
+                  onOpenLogin={() => handleOpenLogin("Candidate")}
                 />
               )}
               {userType === "Employer" && (
                 <RegisterEmployer
                   onClose={handleRegisterClose}
-                  onOpenLogin={handleOpenLogin}
+                  onOpenLogin={() => handleOpenLogin("Employer")}
                 />
               )}
             </DialogContent>
@@ -142,7 +144,7 @@ const HeroSection = () => {
           </Dialog>
 
           {/* 🔐 Login Modal */}
-          <LoginModal open={openLogin} onClose={handleCloseLogin} />
+          <LoginModal open={openLogin} onClose={handleCloseLogin} userType={userType} />
         </Container>
       </Box>
     </>
@@ -150,4 +152,5 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
+
 

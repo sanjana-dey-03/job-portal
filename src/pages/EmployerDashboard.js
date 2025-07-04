@@ -23,16 +23,30 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
-import { db } from "../firebase"; // Make sure this points to your firebase.js file
+import { db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 const EmployerDashboard = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const [applications, setApplications] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const navigate = useNavigate();
 
   const handleTabChange = (_, newValue) => {
     setTabIndex(newValue);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(getAuth());
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("tokenExpiry");
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   useEffect(() => {
@@ -60,6 +74,27 @@ const EmployerDashboard = () => {
     if (tabIndex === 1) fetchApplications();
   }, [tabIndex]);
 
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const auth = getAuth();
+        const employerId = auth.currentUser?.uid;
+        if (!employerId) return;
+
+        const q = query(
+          collection(db, "jobs"),
+          where("employerId", "==", employerId)
+        );
+        const querySnapshot = await getDocs(q);
+        const jobPosts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setJobs(jobPosts);
+      } catch (err) {
+        console.error("Failed to fetch jobs:", err);
+      }
+    };
+    fetchJobs();
+  }, []);
+
   return (
     <Box>
       <AppBar position="static" color="default" elevation={1}>
@@ -76,7 +111,7 @@ const EmployerDashboard = () => {
           <Stack direction="row" spacing={3} alignItems="center">
             <Typography>Company Profile</Typography>
             <Typography>Settings</Typography>
-            <Button variant="contained">Sign Out</Button>
+            <Button variant="contained" onClick={handleLogout}>Sign Out</Button>
           </Stack>
         </Toolbar>
       </AppBar>
@@ -98,7 +133,7 @@ const EmployerDashboard = () => {
                     <Typography variant="body2" color="text.secondary">
                       Active Jobs
                     </Typography>
-                    <Typography variant="h6">12</Typography>
+                    <Typography variant="h6">{jobs.length}</Typography>
                   </Box>
                   <WorkOutlineIcon color="primary" />
                 </Stack>
@@ -113,7 +148,7 @@ const EmployerDashboard = () => {
                     <Typography variant="body2" color="text.secondary">
                       Total Applications
                     </Typography>
-                    <Typography variant="h6">287</Typography>
+                    <Typography variant="h6">{applications.length}</Typography>
                   </Box>
                   <GroupIcon color="success" />
                 </Stack>
@@ -164,48 +199,49 @@ const EmployerDashboard = () => {
           <Tab label="Analytics" />
         </Tabs>
 
-        {/* My Jobs */}
         {tabIndex === 0 && (
           <Box mt={3}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
               <Typography variant="h6">My Job Postings</Typography>
-              <Button variant="contained" startIcon={<AddIcon />}>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={() => navigate("/post-job")}
+              >
                 Post New Job
               </Button>
             </Stack>
 
-            <Card sx={{ mt: 2 }}>
-              <CardContent>
-                <Stack direction="row" justifyContent="space-between">
-                  <Box>
-                    <Typography fontWeight="bold">
-                      Senior Frontend Developer <Chip label="Active" size="small" color="success" />
-                    </Typography>
-                    <Typography color="text.secondary" fontSize={14}>
-                      Engineering • Full-time
-                    </Typography>
-                    <Typography color="text.secondary" fontSize={14}>
-                      San Francisco, CA • 24 applications • Posted 3 days ago
-                    </Typography>
-                    <Typography color="text.secondary" fontSize={12}>
-                      Expires in 30 days
-                    </Typography>
-                  </Box>
-                  <Stack spacing={1} direction="row">
-                    <Button startIcon={<VisibilityIcon />} variant="outlined">
-                      View
-                    </Button>
-                    <Button startIcon={<EditIcon />} variant="outlined">
-                      Edit
-                    </Button>
+            {jobs.map((job) => (
+              <Card key={job.id} sx={{ mt: 2 }}>
+                <CardContent>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Box>
+                      <Typography fontWeight="bold">
+                        {job.title} <Chip label="Active" size="small" color="success" />
+                      </Typography>
+                      <Typography color="text.secondary" fontSize={14}>
+                        {job.tags?.join(" • ")} • {job.type}
+                      </Typography>
+                      <Typography color="text.secondary" fontSize={14}>
+                        {job.location} • Posted
+                      </Typography>
+                    </Box>
+                    <Stack spacing={1} direction="row">
+                      <Button startIcon={<VisibilityIcon />} variant="outlined">
+                        View
+                      </Button>
+                      <Button startIcon={<EditIcon />} variant="outlined">
+                        Edit
+                      </Button>
+                    </Stack>
                   </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </Box>
         )}
 
-        {/* Applications */}
         {tabIndex === 1 && (
           <Box mt={3}>
             <Typography variant="h6" mb={2}>Candidate Applications</Typography>

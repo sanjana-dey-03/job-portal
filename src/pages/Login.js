@@ -1,25 +1,49 @@
 import React, { useEffect, useState } from "react";
-import { Box, TextField, Button, Typography } from "@mui/material";
-import { signInWithEmailAndPassword, onIdTokenChanged } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  InputAdornment,
+  IconButton
+} from "@mui/material";
+import {
+  signInWithEmailAndPassword,
+  onIdTokenChanged
+} from "firebase/auth";
+import {
+  collection,
+  query,
+  where,
+  getDocs
+} from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 const Login = ({ userType = "Candidate", onClose }) => {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const isPhoneNumber = (text) => /^\d{10}$/.test(text);
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
       let emailToLogin = identifier;
 
       if (isPhoneNumber(identifier)) {
-        const collectionName = userType === "Candidate" ? "candidates" : "employers";
-        const q = query(collection(db, collectionName), where("phone", "==", identifier));
+        const collectionName =
+          userType === "Candidate" ? "candidates" : "employers";
+        const q = query(
+          collection(db, collectionName),
+          where("phone", "==", identifier)
+        );
         const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
@@ -30,28 +54,27 @@ const Login = ({ userType = "Candidate", onClose }) => {
         emailToLogin = snapshot.docs[0].data().email;
       }
 
-      // Login with email and password
-      const userCredential = await signInWithEmailAndPassword(auth, emailToLogin, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        emailToLogin,
+        password
+      );
       const user = userCredential.user;
 
       if (!user) throw new Error("User not found");
 
-      // Get ID token and expiry
       const idTokenResult = await user.getIdTokenResult();
       const authToken = idTokenResult.token;
       const expiresIn = idTokenResult.expirationTime;
 
-      // Save token and expiry
       localStorage.setItem("authToken", authToken);
       localStorage.setItem("tokenExpiry", expiresIn);
       localStorage.setItem("userRole", userType);
 
       toast.success("Login successful!");
 
-      // Close modal
       if (onClose) onClose();
 
-      // Redirect after a short delay
       setTimeout(() => {
         if (userType === "Candidate") {
           navigate("/candidate-dashboard");
@@ -59,14 +82,14 @@ const Login = ({ userType = "Candidate", onClose }) => {
           navigate("/employer-dashboard");
         }
       }, 500);
-
     } catch (err) {
       console.error(err);
       toast.error("Invalid credentials. Try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // 🔁 Auto-refresh token
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(auth, async (user) => {
       if (user) {
@@ -95,13 +118,31 @@ const Login = ({ userType = "Candidate", onClose }) => {
       <TextField
         fullWidth
         label="Password"
-        type="password"
+        type={showPassword ? "text" : "password"}
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         margin="normal"
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                onClick={() => setShowPassword(!showPassword)}
+                edge="end"
+              >
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          )
+        }}
       />
-      <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={handleLogin}>
-        Login
+      <Button
+        fullWidth
+        variant="contained"
+        sx={{ mt: 2 }}
+        onClick={handleLogin}
+        disabled={loading}
+      >
+        {loading ? "Logging in..." : "Login"}
       </Button>
     </Box>
   );

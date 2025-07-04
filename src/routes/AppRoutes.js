@@ -8,6 +8,12 @@ import EmployerDashboard from "../pages/EmployerDashboard";
 import JobList from "../pages/JobList";
 import RegisterCandidate from "../pages/RegisterCandidate";
 import RegisterEmployer from "../pages/RegisterEmployer";
+import AddSampleJobs from "../pages/AddSampleJobs";
+import PostJobForm from "../pages/PostJobForm";
+import JobDetail from "../pages/JobDetail";
+import ApplyToJob from "../pages/ApplyToJob";
+
+
 
 const AppRoutes = () => {
   return (
@@ -19,6 +25,11 @@ const AppRoutes = () => {
       <Route path="/candidates" element={<JobList />} />
       <Route path="/register/candidate" element={<RegisterCandidate />} />
 <Route path="/register/employer" element={<RegisterEmployer />} />
+<Route path="/add-sample-jobs" element={<AddSampleJobs />} />
+<Route path="/post-job" element={<PostJobForm />} />
+<Route path="/job/:id" element={<JobDetail />} />
+<Route path="/apply/:id" element={<ApplyToJob />} />
+
 
     </Routes>
   );

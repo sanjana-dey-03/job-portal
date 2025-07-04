@@ -1,5 +1,4 @@
-// src/components/LoginModal.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -11,8 +10,12 @@ import {
 } from "@mui/material";
 import Login from "./Login";
 
-const LoginModal = ({ open, onClose }) => {
-  const [userType, setUserType] = useState(""); // "Candidate" or "Employer"
+const LoginModal = ({ open, onClose, userType: defaultType }) => {
+  const [userType, setUserType] = useState(defaultType || "");
+
+  useEffect(() => {
+    setUserType(defaultType || "");
+  }, [defaultType]);
 
   const handleSelectType = (type) => {
     setUserType(type);
@@ -52,4 +55,3 @@ const LoginModal = ({ open, onClose }) => {
 };
 
 export default LoginModal;
-

@@ -251,12 +251,33 @@ const EmployerDashboard = () => {
               applications.map((app) => (
                 <Card key={app.id} sx={{ mb: 2 }}>
                   <CardContent>
-                    <Typography fontWeight="bold">{app.candidateName}</Typography>
-                    <Typography>Email: {app.email}</Typography>
-                    <Typography>Applied: {app.appliedAt?.toDate().toLocaleString()}</Typography>
-                    <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer">
-                      View Resume
-                    </a>
+                    <Typography variant="h6" fontWeight="bold">
+                      {app.candidateName}
+                    </Typography>
+                    <Typography>Email: {app.candidateEmail}</Typography>
+                    <Typography>
+                      Skills:{" "}
+                      {Array.isArray(app.candidateSkills)
+                        ? app.candidateSkills.join(", ")
+                        : app.candidateSkills}
+                    </Typography>
+                    <Typography>
+                      Applied:{" "}
+                      {app.appliedAt?.toDate
+                        ? app.appliedAt.toDate().toLocaleString()
+                        : "N/A"}
+                    </Typography>
+                    {app.candidateResumeURL && (
+                      <Typography mt={1}>
+                        <a
+                          href={app.candidateResumeURL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          View Resume
+                        </a>
+                      </Typography>
+                    )}
                   </CardContent>
                 </Card>
               ))
@@ -269,4 +290,5 @@ const EmployerDashboard = () => {
 };
 
 export default EmployerDashboard;
+
 

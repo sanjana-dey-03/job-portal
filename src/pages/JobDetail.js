@@ -12,15 +12,14 @@ import {
   CircularProgress,
   Stack
 } from "@mui/material";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../firebase"; // adjust path as needed
-import { useNavigate } from "react-router-dom";
+import { doc, getDoc, collection, addDoc, Timestamp } from "firebase/firestore";
+import { db, auth } from "../firebase"; // Make sure auth is imported
+import { toast } from "react-toastify";
 
 const JobDetail = () => {
   const { id } = useParams();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -42,9 +41,49 @@ const JobDetail = () => {
     fetchJob();
   }, [id]);
 
-  const handleApply = () => {
-    navigate(`/apply/${id}`);
+  const handleApply = async () => {
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        toast.error("You must be logged in to apply.");
+        return;
+      }
+  
+      // Fetch candidate details from Firestore
+      const candidateRef = doc(db, "candidates", user.uid);
+      const candidateSnap = await getDoc(candidateRef);
+  
+      if (!candidateSnap.exists()) {
+        toast.error("Candidate profile not found.");
+        return;
+      }
+  
+      const candidateData = candidateSnap.data();
+  
+      const applicationData = {
+        jobId: id,
+        jobTitle: job.title || "",
+        employerId: job.employerId || "",
+        appliedAt: Timestamp.now(),
+  
+        // Full candidate details
+        candidateId: user.uid,
+        candidateEmail: candidateData.email || "",
+        candidateName: candidateData.name || "",
+        candidateSkills: candidateData.skills || [],
+        candidatePhone: candidateData.phone || "",
+        candidateResumeURL: candidateData.resumeURL || ""
+      };
+  
+      await addDoc(collection(db, "applications"), applicationData);
+  
+      toast.success("Application submitted successfully!");
+    } catch (error) {
+      console.error("Error applying:", error);
+      toast.error("Failed to apply. Try again.");
+    }
   };
+  
 
   if (loading) {
     return (

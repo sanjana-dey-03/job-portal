@@ -18,6 +18,8 @@ import RegisterCandidate from "./RegisterCandidate";
 import RegisterEmployer from "./RegisterEmployer";
 import LoginModal from "./LoginModal";
 import { Link } from "react-router-dom";
+import CorporateFareIcon from "@mui/icons-material/CorporateFare";
+
 
 const HeroSection = () => {
   const [openRegister, setOpenRegister] = useState(false);
@@ -64,8 +66,11 @@ const HeroSection = () => {
             Find Your Dream Job or{" "}
             <span style={{ color: "#1a73e8" }}>Perfect Candidate</span>
           </Typography>
-          <Typography variant="subtitle1" mt={2} mb={5} color="text.secondary">
-            Connect talented professionals with amazing companies. Whether you're looking for your next career move or searching for top talent, we've got you covered.
+          <Typography sx={{ fontSize: '20px' }} mt={2} color="text.secondary">
+            Connect talented professionals with amazing companies. Whether you're looking for
+          </Typography>
+          <Typography sx={{ fontSize: '20px' }} mb={5} color="text.secondary">
+            your next career move or searching for top talent, we've got you covered.
           </Typography>
 
           <Stack
@@ -86,6 +91,7 @@ const HeroSection = () => {
             <Button
               variant="outlined"
               size="large"
+              startIcon={<CorporateFareIcon />}
               onClick={() => handleRegisterOpen("Employer")}
               sx={outlinedButtonStyle}
             >
